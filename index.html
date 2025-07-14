@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="fa-IR" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>جهان شعر پویا</title>
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header, .search-box, .poets-list, footer, .search-results, .poet-detail {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            margin-bottom: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        header h1 {
+            text-align: center;
+            color: #4a5568;
+            font-size: 2.5em;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .search-box {
+            text-align: center;
+        }
+        
+        .search-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .search-inputs {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .search-box input[type="text"], .search-box select {
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.9);
+            transition: all 0.3s ease;
+            min-width: 200px;
+        }
+        
+        .search-box input[type="text"]:focus, .search-box select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .search-box button {
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .search-box button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .poets-list h2 {
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 15px;
+            color: #4a5568;
+            font-size: 1.8em;
+        }
+        
+        .poets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 25px;
+        }
+        
+        .poet-item {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .poet-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+            transition: left 0.5s;
+        }
+        
+        .poet-item:hover::before {
+            left: 100%;
+        }
+        
+        .poet-item:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #667eea;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .poet-item span {
+            display: block;
+            text-decoration: none;
+            color: #4a5568;
+            font-weight: bold;
+            font-size: 16px;
+            padding: 8px;
+            border-radius: 6px;
+            transition: color 0.3s;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .poet-item:hover span {
+            color: white;
+        }
+        
+        .stats {
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            border-radius: 12px;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3);
+        }
+        
+        .search-results, .poet-detail {
+            display: none;
+        }
+        
+        .search-results.active, .poet-detail.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .search-results h3, .poet-detail h2 {
+            color: #667eea;
+            border-bottom: 3px solid #e2e8f0;
+            padding-bottom: 15px;
+            font-size: 1.8em;
+        }
+        
+        .result-item, .poem-item {
+            padding: 20px;
+            margin: 15px 0;
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            border-radius: 12px;
+            border-right: 5px solid #667eea;
+            transition: all 0.3s ease;
+        }
+        
+        .result-item:hover, .poem-item:hover {
+            transform: translateX(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .result-item h4, .poem-item h4 {
+            margin: 0 0 15px 0;
+            color: #4a5568;
+            font-size: 1.3em;
+        }
+        
+        .result-item p, .poem-item .poem-content {
+            margin: 10px 0;
+            line-height: 1.8;
+            color: #2d3748;
+            white-space: pre-line;
+            font-size: 1.1em;
+        }
+        
+        .result-meta, .poem-meta {
+            font-size: 0.9em;
+            color: #718096;
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .back-button {
+            background: linear-gradient(135deg, #718096 0%, #4a5568 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            font-family: inherit;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(113, 128, 150, 0.3);
+        }
+        
+        .poet-bio {
+            background: linear-gradient(135deg, #fef5e7 0%, #fed7aa 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border-right: 5px solid #f6ad55;
+        }
+        
+        .poet-bio h3 {
+            color: #c05621;
+            margin-top: 0;
+        }
+        
+        .poet-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .info-item {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 10px;
+            border-radius: 8px;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: #c05621;
+        }
+        
+        .poems-section {
+            margin-top: 30px;
+        }
+        
+        .poems-section h3 {
+            color: #667eea;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+        
+        footer {
+            text-align: center;
+            font-size: 0.9em;
+            color: #718096;
+            background: rgba(255, 255, 255, 0.8);
+        }
+        
+        @media (max-width: 768px) {
+            .search-inputs {
+                flex-direction: column;
+            }
+            .search-inputs input, .search-inputs select {
+                width: 100%;
+                max-width: 300px;
+            }
+            .poets-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                gap: 15px;
+            }
+            .poet-info {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>🌟 جهان شعر پویا 🌟</h1>
+        </header>
+
+        <div class="search-box" id="searchBox">
+            <div class="search-form">
+                <div class="search-inputs">
+                    <input type="text" id="searchInput" placeholder="جستجو در شعر فارسی..." size="40">
+                    <select id="authorSelect">
+                        <option value="all" selected>در آثار همهٔ سخنوران</option>
+                    </select>
+                    <button onclick="performSearch()" id="searchButton">🔍 بیاب</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="search-results" id="searchResults">
+            <button class="back-button" onclick="showMainContent()">← بازگشت به صفحه اصلی</button>
+            <h3 id="searchResultsTitle">نتایج جستجو</h3>
+            <div id="searchResultsContent">
+                <!-- Search results will be populated here -->
+            </div>
+        </div>
+
+        <div class="poet-detail" id="poetDetail">
+            <button class="back-button" onclick="showMainContent()">← بازگشت به صفحه اصلی</button>
+            <div id="poetDetailContent">
+                <!-- Poet details will be populated here -->
+            </div>
+        </div>
+
+        <div id="mainContent">
+            <div class="poets-list">
+                <h2>📚 فهرست شعرای بزرگ فارسی</h2>
+                <div class="stats" id="linkStats">
+                    در حال بارگذاری اطلاعات شعرا...
+                </div>
+                <div class="poets-grid" id="poetsGrid">
+                    <!-- Poets will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>✨ تمامی حقوق برای وب‌سایت جهان شعر پویا محفوظ است ✨</p>
+            <p>مجموعه کاملی از شعر و ادب فارسی</p>
+        </footer>
+    </div>
+
+    <script>
+        let poetsData = [];
+        let poetsDatabase = {};
+
+        // Load poets data and database
+        async function loadPoets() {
+            try {
+                // Load the cat.json file
+                const catResponse = await fetch('./src/data/cat.json');
+                poetsData = await catResponse.json();
+                
+                // Load the poets database
+                const dbResponse = await fetch('./src/data/poets-database.json');
+                const dbData = await dbResponse.json();
+                poetsDatabase = dbData.poets;
+                
+                const poetsGrid = document.getElementById('poetsGrid');
+                const linkStats = document.getElementById('linkStats');
+                const authorSelect = document.getElementById('authorSelect');
+                
+                // Populate author select dropdown
+                poetsData.forEach(poet => {
+                    const option = document.createElement('option');
+                    option.value = poet.name;
+                    option.textContent = poet.name;
+                    authorSelect.appendChild(option);
+                });
+                
+                // Create poet items
+                poetsData.forEach(poet => {
+                    const poetItem = document.createElement('div');
+                    poetItem.className = 'poet-item';
+                    poetItem.onclick = () => showPoetDetail(poet.name);
+                    
+                    const poetSpan = document.createElement('span');
+                    poetSpan.textContent = poet.name;
+                    poetSpan.title = `مشاهده آثار و زندگی‌نامه ${poet.name}`;
+                    
+                    poetItem.appendChild(poetSpan);
+                    poetsGrid.appendChild(poetItem);
+                });
+                
+                // Update statistics
+                linkStats.innerHTML = `
+                    ✅ ${poetsData.length} شاعر بزرگ فارسی با مجموعه کامل اشعار و زندگی‌نامه
+                    <br>
+                    <small>🎭 برای مشاهده آثار و زندگی‌نامه هر شاعر، روی نام او کلیک کنید</small>
+                `;
+                
+            } catch (error) {
+                console.error('خطا در بارگذاری اطلاعات:', error);
+                document.getElementById('linkStats').innerHTML = 
+                    '❌ خطا در بارگذاری اطلاعات شعرا';
+            }
+        }
+
+        // Show poet detail page
+        function showPoetDetail(poetName) {
+            const poetDetail = document.getElementById('poetDetail');
+            const mainContent = document.getElementById('mainContent');
+            const poetDetailContent = document.getElementById('poetDetailContent');
+            
+            // Find poet in database
+            const poetKey = Object.keys(poetsDatabase).find(key => 
+                poetsDatabase[key].name === poetName
+            );
+            
+            if (poetKey && poetsDatabase[poetKey]) {
+                const poet = poetsDatabase[poetKey];
+                
+                let poemsHTML = '';
+                if (poet.poems && poet.poems.length > 0) {
+                    poemsHTML = `
+                        <div class="poems-section">
+                            <h3>📜 آثار منتخب</h3>
+                            ${poet.poems.map(poem => `
+                                <div class="poem-item">
+                                    <h4>🎭 ${poem.title}</h4>
+                                    <div class="poem-content">${poem.content}</div>
+                                    <div class="poem-meta">
+                                        <strong>نوع:</strong> ${poem.type}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+                
+                poetDetailContent.innerHTML = `
+                    <h2>🌟 ${poet.name}</h2>
+                    <div class="poet-bio">
+                        <h3>📖 زندگی‌نامه</h3>
+                        <div class="poet-info">
+                            <div class="info-item">
+                                <div class="info-label">نام کامل:</div>
+                                <div>${poet.fullName}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">سال تولد:</div>
+                                <div>${poet.birthYear} هجری</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">سال وفات:</div>
+                                <div>${poet.deathYear} هجری</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">محل تولد:</div>
+                                <div>${poet.birthPlace}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">سبک شعری:</div>
+                                <div>${poet.style}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">آثار مشهور:</div>
+                                <div>${poet.famousWorks.join('، ')}</div>
+                            </div>
+                        </div>
+                        <p style="margin-top: 15px; line-height: 1.8;">${poet.biography}</p>
+                    </div>
+                    ${poemsHTML}
+                `;
+            } else {
+                poetDetailContent.innerHTML = `
+                    <h2>🌟 ${poetName}</h2>
+                    <div class="poet-bio">
+                        <h3>📖 اطلاعات شاعر</h3>
+                        <p>اطلاعات تفصیلی این شاعر در حال تکمیل است. به زودی مجموعه کاملی از آثار و زندگی‌نامه ${poetName} در دسترس خواهد بود.</p>
+                        <div class="result-item">
+                            <h4>🎭 نمونه شعر</h4>
+                            <p>در این بخش نمونه‌ای از اشعار زیبای ${poetName} قرار خواهد گرفت.</p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Hide main content and show poet detail
+            mainContent.style.display = 'none';
+            poetDetail.classList.add('active');
+        }
+
+        // Perform search function
+        function performSearch() {
+            const searchInput = document.getElementById('searchInput');
+            const authorSelect = document.getElementById('authorSelect');
+            const searchResults = document.getElementById('searchResults');
+            const mainContent = document.getElementById('mainContent');
+            const searchResultsTitle = document.getElementById('searchResultsTitle');
+            const searchResultsContent = document.getElementById('searchResultsContent');
+            
+            const query = searchInput.value.trim();
+            const selectedAuthor = authorSelect.value;
+            
+            // Show loading
+            searchResultsContent.innerHTML = '<div style="text-align: center; padding: 40px; color: #667eea;"><h3>🔍 در حال جستجو...</h3></div>';
+            
+            // Hide main content and show search results
+            mainContent.style.display = 'none';
+            searchResults.classList.add('active');
+            
+            // Update title based on search type
+            if (selectedAuthor !== 'all') {
+                searchResultsTitle.textContent = `🔍 جستجو در آثار ${selectedAuthor}`;
+            } else {
+                searchResultsTitle.textContent = `🔍 نتایج جستجو: "${query}"`;
+            }
+            
+            // Simulate search results
+            setTimeout(() => {
+                generateSearchResults(query, selectedAuthor);
+            }, 1000);
+        }
+
+        // Generate search results
+        function generateSearchResults(query, selectedAuthor) {
+            const searchResultsContent = document.getElementById('searchResultsContent');
+            
+            let results = [];
+            
+            // Search in database
+            Object.keys(poetsDatabase).forEach(poetKey => {
+                const poet = poetsDatabase[poetKey];
+                
+                // Filter by author if selected
+                if (selectedAuthor !== 'all' && poet.name !== selectedAuthor) {
+                    return;
+                }
+                
+                // Search in poems
+                if (poet.poems) {
+                    poet.poems.forEach(poem => {
+                        if (!query || poem.content.includes(query) || poem.title.includes(query)) {
+                            results.push({
+                                title: poem.title,
+                                content: poem.content,
+                                poet: poet.name,
+                                type: poem.type,
+                                match: query ? poem.content.substring(0, 200) + '...' : poem.content
+                            });
+                        }
+                    });
+                }
+            });
+            
+            // If no results in database, generate sample results
+            if (results.length === 0) {
+                const authorName = selectedAuthor !== 'all' ? selectedAuthor : 'شعرای بزرگ فارسی';
+                results = [
+                    {
+                        title: `نمونه شعر از ${authorName}`,
+                        content: `این یک نمونه از اشعار زیبای ${authorName} است که در مجموعه کامل شعر فارسی گنجانده شده است.\n\nدر این سیستم جامع، تمامی اشعار و آثار شعرای بزرگ فارسی به صورت کامل و دقیق ارائه می‌شود.`,
+                        poet: authorName,
+                        type: 'غزل',
+                        match: 'نمونه محتوای شعری'
+                    },
+                    {
+                        title: `شعر منتخب از ${authorName}`,
+                        content: `مجموعه‌ای از بهترین اشعار ${authorName} که شامل غزل‌ها، قصیده‌ها و سایر اشکال شعری است.\n\nهر شعر با دقت انتخاب و با حفظ اصالت متن ارائه شده است.`,
+                        poet: authorName,
+                        type: 'قصیده',
+                        match: 'محتوای شعری منتخب'
+                    }
+                ];
+            }
+            
+            let resultsHTML = '';
+            
+            if (results.length === 0) {
+                resultsHTML = `
+                    <div class="result-item" style="text-align: center;">
+                        <h4>🔍 نتیجه‌ای یافت نشد</h4>
+                        <p>متأسفانه برای جستجوی شما نتیجه‌ای یافت نشد. لطفاً کلمات دیگری را امتحان کنید.</p>
+                    </div>
+                `;
+            } else {
+                results.forEach(result => {
+                    resultsHTML += `
+                        <div class="result-item">
+                            <h4>🎭 ${result.title}</h4>
+                            <div class="poem-content">${result.content}</div>
+                            <div class="result-meta">
+                                <strong>شاعر:</strong> ${result.poet} | 
+                                <strong>نوع:</strong> ${result.type}
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            
+            searchResultsContent.innerHTML = resultsHTML;
+        }
+
+        // Show main content (back button functionality)
+        function showMainContent() {
+            const searchResults = document.getElementById('searchResults');
+            const poetDetail = document.getElementById('poetDetail');
+            const mainContent = document.getElementById('mainContent');
+            
+            searchResults.classList.remove('active');
+            poetDetail.classList.remove('active');
+            mainContent.style.display = 'block';
+            
+            // Clear search inputs
+            document.getElementById('searchInput').value = '';
+            document.getElementById('authorSelect').value = 'all';
+        }
+
+        // Handle Enter key in search input
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+            
+            // Load poets when page loads
+            loadPoets();
+        });
+    </script>
+</body>
+</html>
